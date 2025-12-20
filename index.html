@@ -16,7 +16,6 @@
             height: 100vh; width: 100vw; overflow-x: hidden;
         }
 
-        /* شاشات كاملة */
         #startScreen, #adminScreen, #mainLayout { 
             position: fixed; inset: 0; width: 100%; height: 100%; 
             background: var(--dark); z-index: 1000; overflow-y: auto;
@@ -29,19 +28,33 @@
         .card { 
             background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 20px; 
             text-align: center; border: 1px solid var(--primary); width: 100%; max-width: 700px; 
+            margin: auto;
         }
 
-        /* واجهة الطالب - الهاتف */
+        /* واجهة المعلم المحدثة */
+        .stats-bar {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
+        }
+        .stat-item {
+            background: rgba(0, 210, 255, 0.1); padding: 10px; border-radius: 15px; border: 1px solid var(--primary);
+        }
+        .stat-item span { font-size: 0.8rem; color: #ccc; }
+        .stat-item b { display: block; font-size: 1.2rem; color: var(--primary); }
+
+        .scroll-area {
+            max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3);
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px;
+            scrollbar-width: thin; scrollbar-color: var(--primary) transparent;
+        }
+
+        /* واجهة الطالب */
         .game-header { 
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; max-width: 500px; background: rgba(255,255,255,0.1); 
             padding: 10px 15px; border-radius: 50px; margin-bottom: 10px; font-size: 0.9rem;
         }
 
-        .wheel-box { 
-            position: relative; width: 280px; height: 280px; margin: 10px auto; 
-            flex-shrink: 0;
-        }
+        .wheel-box { position: relative; width: 280px; height: 280px; margin: 10px auto; flex-shrink: 0; }
         #canvas { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #334155; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 100; width: 35px; }
 
@@ -54,12 +67,8 @@
 
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-family: 'Cairo'; }
 
-        .leaderboard { width: 100%; max-width: 500px; margin-top: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; padding: 10px; }
-        .rank-item { display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); margin-bottom: 5px; border-radius: 8px; font-size: 0.85rem; }
-
-        .admin-section { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: right; border: 1px solid rgba(255,255,255,0.05); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th, td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: none; justify-content: center; align-items: center; z-index: 5000; padding: 20px; }
         .modal { background: #1e293b; width: 100%; max-width: 400px; padding: 20px; border-radius: 20px; border: 2px solid var(--primary); text-align: center; }
@@ -75,37 +84,43 @@
         <div class="card" style="max-width: 350px;">
             <h1 onclick="openAdmin()" style="cursor: pointer; font-size: 1.5rem;">🎡 مسابقة التقنية</h1>
             <input type="text" id="pName" placeholder="اسم الطالب">
-            <input type="text" id="pClass" placeholder="الصف (مثلاً: 5/1)">
+            <input type="text" id="pClass" placeholder="الصف">
             <button class="btn btn-primary btn-block" onclick="launchGame()">دخول اللعبة</button>
-            <p style="font-size: 0.7rem; color: #555; margin-top: 10px;">المعلم: اضغط على العنوان</p>
         </div>
     </div>
 
     <div id="adminScreen">
-        <div class="card" style="max-width: 800px; margin: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="font-size: 1.2rem;">🛠️ لوحة المعلم</h2>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.2rem; margin:0;">🛠️ لوحة المعلم</h2>
                 <button class="btn btn-danger" onclick="location.reload()">خروج</button>
             </div>
 
-            <div class="admin-section">
-                <h3>📝 إضافة سؤال</h3>
+            <div class="stats-bar">
+                <div class="stat-item"><span>المشاركين</span><b id="statPlayers">0</b></div>
+                <div class="stat-item"><span>أعلى درجة</span><b id="statHigh">0</b></div>
+                <div class="stat-item"><span>الأسئلة</span><b id="statCount">0</b></div>
+            </div>
+
+            <div style="text-align: right; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px;">
+                <h3>➕ إضافة سؤال</h3>
                 <input type="text" id="newQ" placeholder="السؤال">
                 <input type="text" id="ansCorrect" placeholder="الإجابة الصحيحة">
                 <input type="text" id="ansW1" placeholder="خيار خطأ 1">
                 <input type="text" id="ansW2" placeholder="خيار خطأ 2">
-                <button class="btn btn-success btn-block" onclick="saveNewQ()">إضافة +</button>
-                <div id="qsTableContainer" style="max-height: 150px; overflow-y: auto; margin-top: 10px;"></div>
+                <button class="btn btn-success btn-block" onclick="saveNewQ()">حفظ السؤال</button>
+                
+                <div class="scroll-area" id="qsTableContainer"></div>
             </div>
 
-            <div class="admin-section">
-                <h3>📊 النتائج</h3>
-                <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px;">
-                    <button class="btn btn-warning btn-block" style="flex:1" onclick="copyResults()">نسخ</button>
-                    <button class="btn btn-primary btn-block" style="flex:1" onclick="exportCSV()">Excel</button>
-                    <button class="btn btn-danger btn-block" style="flex:1" onclick="clearAllScores()">تصفير</button>
+            <div style="margin-top: 20px; text-align: right;">
+                <h3>📊 إدارة النتائج</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="btn btn-warning" style="flex:1" onclick="copyResults()">نسخ</button>
+                    <button class="btn btn-primary" style="flex:1" onclick="exportCSV()">Excel</button>
+                    <button class="btn btn-danger" style="flex:1" onclick="clearAllScores()">تصفير</button>
                 </div>
-                <div style="max-height: 200px; overflow-y: auto;">
+                <div class="scroll-area">
                     <table>
                         <thead><tr><th>الطالب</th><th>الصف</th><th>الدرجة</th></tr></thead>
                         <tbody id="resultsBody"></tbody>
@@ -121,40 +136,29 @@
             <span>🏅 <b id="statScore">0</b></span>
             <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.7rem;" onclick="location.reload()">خروج 🚪</button>
         </div>
-
         <div class="wheel-box">
             <img src="https://cdn-icons-png.flaticon.com/512/2722/2722987.png" class="pointer">
             <canvas id="canvas" width="500" height="500"></canvas>
         </div>
-
         <button class="btn btn-primary btn-block" style="max-width: 300px; height: 50px;" id="spinBtn" onclick="startSpin()">🎡 دَوّر العجلة</button>
-
-        <div class="leaderboard">
-            <h4 style="margin: 0 0 10px 0; text-align: center;">🏆 المتصدرون</h4>
-            <div id="leaderboardList"></div>
-        </div>
+        <div id="leaderboardList" style="width:100%; max-width:500px; margin-top:10px;"></div>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div style="color: var(--warning); margin-bottom: 10px; font-weight: bold;">⏱ <span id="timerVal">10</span></div>
-            <h3 id="modalQ" style="font-size: 1.1rem; margin-bottom: 15px;"></h3>
+            <h3 id="modalQ"></h3>
             <div id="modalOpts"></div>
         </div>
     </div>
 
 <script>
-    const defaultQs = [
-        {q: "ما هو اختصار وحدة المعالجة المركزية؟", o: ["CPU", "RAM", "USB"], a: 0},
-        {q: "تعتبر الشاشة من وحدات الـ إخراج؟", o: ["صح", "خطأ"], a: 0}
-    ];
-
+    const ADMIN_PASS = "123";
     let sessionQuestions = [];
     let gameScore = 0;
     let wheelRotation = 0;
     let isSpinning = false;
     let timerRef;
-    const ADMIN_PASS = "123";
 
     function openAdmin() {
         if(prompt("كلمة المرور:") === ADMIN_PASS) {
@@ -165,11 +169,15 @@
     }
 
     function refreshAdminUI() {
-        const qs = JSON.parse(localStorage.getItem('customQs') || JSON.stringify(defaultQs));
+        const qs = JSON.parse(localStorage.getItem('customQs') || '[]');
         const results = JSON.parse(localStorage.getItem('ranking') || '[]');
         
+        document.getElementById('statCount').innerText = qs.length;
+        document.getElementById('statPlayers').innerText = results.length;
+        document.getElementById('statHigh').innerText = results.length ? Math.max(...results.map(r => r.score)) : 0;
+
         document.getElementById('qsTableContainer').innerHTML = `<table>` + 
-            qs.map((q, i) => `<tr><td>${q.q}</td><td><button onclick="delQ(${i})" style="color:red; background:none; border:none;">❌</button></td></tr>`).join('') + `</table>`;
+            qs.map((q, i) => `<tr><td style="text-align:right">${q.q}</td><td><button onclick="delQ(${i})" style="color:red; background:none; border:none; cursor:pointer">❌ حذف</button></td></tr>`).join('') + `</table>`;
 
         document.getElementById('resultsBody').innerHTML = results.sort((a,b)=>b.score - a.score).map(r => `
             <tr><td>${r.name}</td><td>${r.class}</td><td>${r.score}</td></tr>
@@ -179,8 +187,8 @@
     function saveNewQ() {
         const q = document.getElementById('newQ').value;
         const c = document.getElementById('ansCorrect').value;
-        if(!q || !c) return alert("أكمل البيانات");
-        const qs = JSON.parse(localStorage.getItem('customQs') || JSON.stringify(defaultQs));
+        if(!q || !c) return alert("أدخل السؤال والإجابة");
+        const qs = JSON.parse(localStorage.getItem('customQs') || '[]');
         qs.push({q, o: [c, document.getElementById('ansW1').value, document.getElementById('ansW2').value].filter(x => x), a: 0});
         localStorage.setItem('customQs', JSON.stringify(qs));
         refreshAdminUI();
@@ -188,18 +196,16 @@
     }
 
     function delQ(i) {
-        if(confirm("حذف السؤال؟")) {
-            if(prompt("كلمة المرور:") === ADMIN_PASS) {
-                let qs = JSON.parse(localStorage.getItem('customQs') || JSON.stringify(defaultQs));
-                qs.splice(i, 1);
-                localStorage.setItem('customQs', JSON.stringify(qs));
-                refreshAdminUI();
-            } else { alert("خطأ!"); }
+        if(confirm("حذف السؤال؟") && prompt("كلمة المرور للتأكيد:") === ADMIN_PASS) {
+            let qs = JSON.parse(localStorage.getItem('customQs') || '[]');
+            qs.splice(i, 1);
+            localStorage.setItem('customQs', JSON.stringify(qs));
+            refreshAdminUI();
         }
     }
 
     function clearAllScores() {
-        if(confirm("تصفير الكل؟") && prompt("المرور:") === ADMIN_PASS) {
+        if(confirm("تصفير كل النتائج؟") && prompt("كلمة المرور:") === ADMIN_PASS) {
             localStorage.removeItem('ranking');
             refreshAdminUI();
         }
@@ -209,11 +215,11 @@
         const n = document.getElementById('pName').value;
         const c = document.getElementById('pClass').value;
         if(!n || !c) return alert("سجل بياناتك");
-        sessionQuestions = JSON.parse(localStorage.getItem('customQs') || JSON.stringify(defaultQs));
+        sessionQuestions = JSON.parse(localStorage.getItem('customQs') || '[]');
+        if(sessionQuestions.length === 0) return alert("لا توجد أسئلة!");
         document.getElementById('statName').innerText = n;
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('mainLayout').style.display = 'flex';
-        updateLeaderboard();
         drawWheel();
     }
 
@@ -221,7 +227,7 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const num = sessionQuestions.length;
-        if(num === 0) { document.getElementById('spinBtn').disabled = true; return; }
+        if(num === 0) { document.getElementById('spinBtn').innerText = "انتهت الأسئلة"; document.getElementById('spinBtn').disabled = true; return; }
         const angle = 2 * Math.PI / num;
         const colors = ['#FF5E5E', '#FFB84E', '#4E9FFF', '#4EFC9F', '#B34EFC', '#FC4EED'];
         ctx.clearRect(0,0,500,500);
@@ -282,14 +288,6 @@
         const i = ranking.findIndex(r => r.name === name && r.class === cls);
         if(i > -1) ranking[i].score = gameScore; else ranking.push({name, class: cls, score: gameScore});
         localStorage.setItem('ranking', JSON.stringify(ranking));
-        updateLeaderboard();
-    }
-
-    function updateLeaderboard() {
-        const ranking = JSON.parse(localStorage.getItem('ranking') || '[]');
-        document.getElementById('leaderboardList').innerHTML = ranking.sort((a,b)=>b.score-a.score).slice(0, 5).map(r => `
-            <div class="rank-item"><span>${r.name}</span><b>${r.score}</b></div>
-        `).join('');
     }
 
     function copyResults() {
@@ -308,6 +306,7 @@
 </script>
 </body>
 </html>
+
 
 
 
