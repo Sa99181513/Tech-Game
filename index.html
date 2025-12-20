@@ -11,10 +11,7 @@
         
         body { 
             margin: 0; font-family: 'Cairo', sans-serif; background: #0f172a; color: white; 
-            min-height: 100vh; display: flex; flex-direction: column; 
-            /* تم السماح بالتمرير هنا */
-            overflow-x: hidden; 
-            overflow-y: auto; 
+            min-height: 100vh; overflow-x: hidden; overflow-y: auto;
         }
 
         #startScreen { 
@@ -27,63 +24,53 @@
         }
 
         .main-layout { 
-            display: none; flex: 1; padding: 10px; gap: 15px; 
+            display: none; padding: 10px; gap: 10px; 
             flex-direction: row; justify-content: center; align-items: flex-start; flex-wrap: wrap;
+        }
+
+        .game-container { 
+            width: 100%; max-width: 500px; text-align: center; 
+            display: flex; flex-direction: column; align-items: center;
         }
 
         .leaderboard { 
             width: 100%; max-width: 280px; background: rgba(255, 255, 255, 0.05); 
-            border-radius: 20px; padding: 15px; 
-            /* جعل الارتفاع تلقائي في الهاتف ليظهر أسفل العجلة */
-            border: 1px solid rgba(255,255,255,0.1); 
-        }
-
-        .game-container { 
-            flex: 1; min-width: 300px; max-width: 500px; text-align: center; 
-            display: flex; flex-direction: column; align-items: center;
+            border-radius: 20px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); 
         }
 
         .stats-bar { 
             width: 100%; display: flex; justify-content: space-around; align-items: center;
-            background: rgba(255,255,255,0.1); padding: 10px; border-radius: 30px; 
-            margin-bottom: 10px; font-size: 0.9rem; box-sizing: border-box;
+            background: rgba(255,255,255,0.1); padding: 8px; border-radius: 30px; 
+            margin-bottom: 5px; font-size: 0.85rem; box-sizing: border-box;
         }
 
         .wheel-box { 
-            position: relative; width: 75vw; height: 75vw; max-width: 350px; max-height: 350px; margin: 10px auto; 
+            position: relative; width: 70vw; height: 70vw; max-width: 320px; max-height: 320px; margin: 10px auto; 
         }
         #canvas { width: 100% !important; height: 100% !important; border-radius: 50%; border: 5px solid white; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 100; width: 40px; }
 
-        input, button.main-btn, .danger-btn { 
-            width: 100%; padding: 12px; border-radius: 12px; border: none; margin: 10px 0; 
+        input, button.main-btn { 
+            width: 100%; padding: 12px; border-radius: 12px; border: none; margin: 8px 0; 
             font-family: 'Cairo'; font-size: 1.1rem; box-sizing: border-box; 
         }
         button.main-btn { background: var(--primary); cursor: pointer; font-weight: bold; color: #0f172a; transition: 0.3s; }
-        .danger-btn { background: var(--danger); color: white; cursor: pointer; border: 2px dashed white; display: none; }
-
-        .correct-ans { background-color: var(--success) !important; color: white !important; transform: scale(1.05); }
-        .wrong-ans { background-color: var(--danger) !important; color: white !important; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
         .modal { background: #1e293b; width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; text-align: center; border: 2px solid var(--primary); }
 
+        /* تعديلات الجوال الحاسمة */
         @media (max-width: 768px) {
-            .main-layout { 
-                flex-direction: column; 
-                align-items: center; 
-                padding: 5px; 
-                overflow-y: visible; /* السماح بالتمرير الطبيعي */
-            }
+            .main-layout { flex-direction: column; align-items: center; padding: 5px; gap: 5px; }
+            .game-container { order: 1; width: 100%; margin-bottom: 0; }
+            .wheel-box { width: 65vw; height: 65vw; margin: 5px auto; }
             .leaderboard { 
-                order: 2; 
-                width: 95%; 
-                max-height: none; /* إزالة تقييد الارتفاع ليظهر كل الأسماء */
-                margin: 20px 0; 
+                order: 2; width: 95%; max-width: 100%; 
+                margin-top: 5px; /* تقليل المسافة العلوية جداً لتقترب من الزر */
+                padding: 10px;
             }
-            .game-container { order: 1; width: 100%; }
-            .wheel-box { width: 80vw; height: 80vw; }
-            .stats-bar { font-size: 0.8rem; padding: 8px; }
+            .stats-bar { margin-bottom: 5px; }
+            button.main-btn { margin: 5px 0; }
         }
     </style>
 </head>
@@ -96,11 +83,10 @@
 
     <div id="startScreen">
         <div class="login-card">
-            <h1 id="gameTitle" style="cursor: pointer; user-select: none;">🎡 عجلة تقنية المعلومات</h1>
+            <h1>🎡 عجلة التقنية</h1>
             <input type="text" id="pName" placeholder="اسم الطالب">
-            <input type="text" id="pClass" placeholder="الصف مثلا : 5\1">
+            <input type="text" id="pClass" placeholder="الصف">
             <button class="main-btn" onclick="startGame()">دخول</button>
-            <button id="adminClearBtn" class="danger-btn" onclick="clearAllData()">مسح جميع البيانات 🗑️</button>
         </div>
     </div>
 
@@ -108,52 +94,32 @@
         <div class="game-container">
             <div class="stats-bar">
                 <span>👤 <span id="statName">--</span></span>
-                <span>🏅 النقاط: <b id="statScore">0</b></span>
-                <button onclick="location.reload()" style="background:var(--danger); border:none; color:white; padding:4px 12px; border-radius:8px; cursor:pointer; font-family:'Cairo';">خروج</button>
+                <span>🏅 <b id="statScore">0</b></span>
+                <button onclick="location.reload()" style="background:var(--danger); border:none; color:white; padding:2px 10px; border-radius:8px; cursor:pointer;">خروج</button>
             </div>
             
             <div class="wheel-box">
                 <img src="https://cdn-icons-png.flaticon.com/512/2722/2722987.png" class="pointer">
                 <canvas id="canvas" width="500" height="500"></canvas>
             </div>
-            <button class="main-btn" id="spinBtn" style="max-width:220px;" onclick="spinWheel()">🎡 دَوّر العجلة</button>
+            <button class="main-btn" id="spinBtn" style="max-width:200px;" onclick="spinWheel()">🎡 دَوّر العجلة</button>
         </div>
 
         <div class="leaderboard">
-            <h3 style="text-align:center; margin-top:0;">🏆 المتصدرون</h3>
+            <h3 style="text-align:center; margin:0 0 10px 0; font-size: 1rem;">🏆 المتصدرون</h3>
             <div id="scoresList"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <div id="timerContainer" style="margin-bottom:15px;">⏱ الوقت المتبقي: <b id="secondsText">10</b></div>
-            <h2 id="qText" style="margin-bottom:20px;">السؤال؟</h2>
+            <div id="timerContainer">⏱ الوقت: <b id="secondsText">10</b></div>
+            <h2 id="qText">السؤال؟</h2>
             <div id="optionsGrid"></div>
         </div>
     </div>
 
 <script>
-    let pressTimer;
-    const gameTitle = document.getElementById('gameTitle');
-    const adminBtn = document.getElementById('adminClearBtn');
-    
-    const startPress = () => { pressTimer = setTimeout(() => { adminBtn.style.display = 'block'; alert("تم تفعيل وضع المعلم"); }, 3000); };
-    const cancelPress = () => { clearTimeout(pressTimer); };
-    
-    gameTitle.addEventListener('mousedown', startPress);
-    gameTitle.addEventListener('touchstart', startPress);
-    gameTitle.addEventListener('mouseup', cancelPress);
-    gameTitle.addEventListener('touchend', cancelPress);
-
-    function clearAllData() {
-        if(confirm("مسح جميع النتائج؟")) {
-            localStorage.removeItem('ranking');
-            updateLeaderboard();
-            adminBtn.style.display = 'none';
-        }
-    }
-
     const originalQuestions = [
         {q: "ما هو اختصار وحدة المعالجة المركزية؟", o: ["RAM", "CPU", "USB"], a: 1},
         {q: "تعتبر الشاشة من وحدات الـ ...؟", o: ["إخراج", "إدخال", "معالجة"], a: 0},
@@ -168,7 +134,6 @@
     let currentRotation = 0;
     let isSpinning = false;
     let timerInterval;
-    let timeLeft = 10;
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -189,24 +154,18 @@
     function startGame() {
         const n = document.getElementById('pName').value;
         const c = document.getElementById('pClass').value;
-        if(!n || !c) return alert("سجل اسمك وفصلك");
-        
-        document.getElementById('bgMusic').volume = 0.2;
-        document.getElementById('bgMusic').play().catch(()=>{});
-        
+        if(!n || !c) return alert("سجل بياناتك");
         document.getElementById('statName').innerText = n + " (" + c + ")";
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('mainLayout').style.display = 'flex';
-        
         drawWheel();
         updateLeaderboard();
-        window.scrollTo(0,0);
+        document.getElementById('bgMusic').volume = 0.1;
+        document.getElementById('bgMusic').play().catch(()=>{});
     }
 
     function spinWheel() {
-        if(isSpinning) return;
-        if(availableQuestions.length === 0) return alert("لقد أجبت على جميع الأسئلة المتوفرة!");
-
+        if(isSpinning || availableQuestions.length === 0) return;
         isSpinning = true;
         document.getElementById('spinSound').play();
         const extraDeg = Math.floor(Math.random() * 360) + 1800;
@@ -218,21 +177,19 @@
     function showQuestion() {
         const qIndex = Math.floor(Math.random() * availableQuestions.length);
         const q = availableQuestions[qIndex];
-        
-        document.getElementById('qText').innerText = q.q;
         const grid = document.getElementById('optionsGrid');
         grid.innerHTML = '';
-        timeLeft = 10;
-        document.getElementById('secondsText').innerText = timeLeft;
+        document.getElementById('qText').innerText = q.q;
         document.getElementById('modalOverlay').style.display = 'flex';
-
+        
+        let timeLeft = 10;
+        document.getElementById('secondsText').innerText = timeLeft;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             timeLeft--;
             document.getElementById('secondsText').innerText = timeLeft;
             if(timeLeft <= 0) {
                 clearInterval(timerInterval);
-                document.getElementById('wrongSound').play();
                 availableQuestions.splice(qIndex, 1);
                 document.getElementById('modalOverlay').style.display = 'none';
             }
@@ -244,30 +201,19 @@
             b.style.background = "rgba(255,255,255,0.1)";
             b.style.color = "white";
             b.innerText = opt;
-            
             b.onclick = () => {
                 clearInterval(timerInterval);
-                const allButtons = grid.querySelectorAll('button');
-                allButtons.forEach(btn => btn.disabled = true);
-
                 if(i === q.a) {
-                    b.classList.add('correct-ans');
-                    score += (timeLeft * 5) + 50;
+                    score += 100;
                     document.getElementById('statScore').innerText = score;
                     confetti();
                     document.getElementById('correctSound').play();
                 } else {
-                    b.classList.add('wrong-ans');
-                    allButtons[q.a].classList.add('correct-ans');
                     document.getElementById('wrongSound').play();
                 }
-
                 availableQuestions.splice(qIndex, 1);
                 saveScore();
-                
-                setTimeout(() => { 
-                    document.getElementById('modalOverlay').style.display = 'none';
-                }, 2000);
+                setTimeout(() => { document.getElementById('modalOverlay').style.display = 'none'; }, 1500);
             };
             grid.appendChild(b);
         });
@@ -287,7 +233,7 @@
         const players = JSON.parse(localStorage.getItem('ranking') || '[]');
         players.sort((a,b) => b.score - a.score);
         document.getElementById('scoresList').innerHTML = players.map(p => 
-            `<div style="display:flex; justify-content:space-between; padding:8px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:8px; border-right:4px solid var(--primary); font-size:0.85rem;">
+            `<div style="display:flex; justify-content:space-between; padding:5px; background:rgba(255,255,255,0.05); margin-bottom:3px; border-radius:8px; border-right:3px solid var(--primary); font-size:0.8rem;">
                 <span>${p.name}</span><b>${p.score}</b>
             </div>`
         ).join('');
@@ -295,6 +241,7 @@
 </script>
 </body>
 </html>
+
 
 
 
