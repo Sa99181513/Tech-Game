@@ -6,268 +6,193 @@
     <title>عجلة تقنية المعلومات</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-
     <style>
-        :root { --primary:#00d2ff; --success:#00c851; --danger:#ff4444; }
-
-        body {
-            margin:0;
-            font-family:'Cairo',sans-serif;
-            background:#0f172a;
-            color:white;
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
-            overflow-x:hidden;
+        :root { --primary: #00d2ff; --success: #00c851; --danger: #ff4444; }
+        
+        body { 
+            margin: 0; font-family: 'Cairo', sans-serif; background: #0f172a; color: white; 
+            min-height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        #startScreen{
-            position:fixed;
-            inset:0;
-            z-index:2000;
-            background:#0f172a;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:20px;
+        #startScreen { 
+            position: fixed; inset: 0; z-index: 2000; background: #0f172a; 
+            display: flex; justify-content: center; align-items: center; padding: 20px;
+        }
+        .login-card { 
+            background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 24px; 
+            text-align: center; border: 1px solid var(--primary); width: 100%; max-width: 380px; 
         }
 
-        .login-card{
-            background:rgba(255,255,255,0.05);
-            padding:30px;
-            border-radius:24px;
-            text-align:center;
-            border:1px solid var(--primary);
-            width:100%;
-            max-width:380px;
+        .main-layout { 
+            display: none; flex: 1; padding: 10px; gap: 15px; 
+            flex-direction: row; justify-content: center; align-items: flex-start; flex-wrap: wrap;
+            overflow-y: auto; /* السماح بالتمرير الكلي فقط إذا لزم الأمر */
         }
 
-        .main-layout{
-            display:none;
-            flex:1;
-            padding:15px;
-            gap:20px;
-            flex-direction:row;
-            justify-content:center;
-            align-items:flex-start;
-            flex-wrap:wrap;
+        .leaderboard { 
+            width: 100%; max-width: 280px; background: rgba(255, 255, 255, 0.05); 
+            border-radius: 20px; padding: 15px; max-height: 80vh; overflow-y: auto; 
+            border: 1px solid rgba(255,255,255,0.1); 
         }
 
-        .leaderboard{
-            width:100%;
-            max-width:280px;
-            background:rgba(255,255,255,0.05);
-            border-radius:20px;
-            padding:15px;
-            max-height:80vh;
-            overflow-y:auto;
-            border:1px solid rgba(255,255,255,0.1);
+        .game-container { 
+            flex: 1; min-width: 300px; max-width: 500px; text-align: center; 
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .game-container{
-            flex:1;
-            min-width:300px;
-            max-width:500px;
-            text-align:center;
+        .stats-bar { 
+            width: 100%; display: flex; justify-content: space-around; align-items: center;
+            background: rgba(255,255,255,0.1); padding: 10px; border-radius: 30px; 
+            margin-bottom: 10px; font-size: 0.9rem; box-sizing: border-box;
         }
 
-        .wheel-box{
-            position:relative;
-            width:85vw;
-            height:85vw;
-            max-width:380px;
-            max-height:380px;
-            margin:20px auto;
+        .wheel-box { 
+            position: relative; width: 75vw; height: 75vw; max-width: 350px; max-height: 350px; margin: 10px auto; 
         }
+        #canvas { width: 100% !important; height: 100% !important; border-radius: 50%; border: 5px solid white; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 100; width: 40px; }
 
-        #canvas{
-            width:100%!important;
-            height:100%!important;
-            border-radius:50%;
-            border:5px solid white;
-            transition:transform 4s cubic-bezier(0.1,0,0.1,1);
+        input, button.main-btn, .danger-btn { 
+            width: 100%; padding: 12px; border-radius: 12px; border: none; margin: 10px 0; 
+            font-family: 'Cairo'; font-size: 1.1rem; box-sizing: border-box; 
         }
+        button.main-btn { background: var(--primary); cursor: pointer; font-weight: bold; color: #0f172a; transition: 0.3s; }
+        .danger-btn { background: var(--danger); color: white; cursor: pointer; border: 2px dashed white; display: none; }
 
-        .pointer{
-            position:absolute;
-            top:-15px;
-            left:50%;
-            transform:translateX(-50%);
-            z-index:100;
-            width:40px;
-        }
+        .correct-ans { background-color: var(--success) !important; color: white !important; transform: scale(1.05); }
+        .wrong-ans { background-color: var(--danger) !important; color: white !important; }
 
-        input,button.main-btn,.danger-btn{
-            width:100%;
-            padding:12px;
-            border-radius:12px;
-            border:none;
-            margin:10px 0;
-            font-family:'Cairo';
-            font-size:1.1rem;
-            box-sizing:border-box;
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
+        .modal { background: #1e293b; width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; text-align: center; border: 2px solid var(--primary); }
 
-        button.main-btn{
-            background:var(--primary);
-            cursor:pointer;
-            font-weight:bold;
-            color:#0f172a;
-        }
-
-        .danger-btn{
-            background:var(--danger);
-            color:white;
-            cursor:pointer;
-            border:2px dashed white;
-            display:none;
-        }
-
-        .correct-ans{background-color:var(--success)!important;color:white!important;transform:scale(1.05);}
-        .wrong-ans{background-color:var(--danger)!important;color:white!important;}
-
-        .stats-bar{
-            display:flex;
-            justify-content:center;
-            gap:15px;
-            background:rgba(255,255,255,0.1);
-            padding:10px;
-            border-radius:30px;
-            margin-bottom:15px;
-            font-size:0.9rem;
-            flex-wrap:wrap;
-
-            /* ✅ تعديل فقط */
-            position:sticky;
-            top:10px;
-            z-index:100;
-        }
-
-        .modal-overlay{
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.95);
-            display:none;
-            justify-content:center;
-            align-items:center;
-            z-index:3000;
-            padding:15px;
-        }
-
-        .modal{
-            background:#1e293b;
-            width:100%;
-            max-width:450px;
-            padding:25px;
-            border-radius:20px;
-            text-align:center;
-            border:2px solid var(--primary);
-        }
-
-        @media (max-width:768px){
-            .main-layout{flex-direction:column;align-items:center;}
-            .leaderboard{order:2;max-width:100%;max-height:250px;}
-            .game-container{order:1;width:100%;}
+        @media (max-width: 768px) {
+            .main-layout { flex-direction: column; align-items: center; padding: 5px; }
+            .leaderboard { order: 2; width: 95%; max-height: 200px; margin-top: 15px; }
+            .game-container { order: 1; width: 100%; }
+            .wheel-box { width: 70vw; height: 70vw; }
+            .stats-bar { font-size: 0.8rem; padding: 8px; }
         }
     </style>
 </head>
-
 <body>
 
-<audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-<audio id="spinSound" src="https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3"></audio>
-<audio id="correctSound" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
-<audio id="wrongSound" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="spinSound" src="https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3"></audio>
+    <audio id="correctSound" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
 
-<div id="startScreen">
-    <div class="login-card">
-        <h1 id="gameTitle">🎡 عجلة تقنية المعلومات</h1>
-        <p style="font-size:0.9rem;color:#888;">أدخل بياناتك للمشاركة</p>
-        <input id="pName" placeholder="اسم الطالب">
-        <input id="pClass" placeholder="الصف">
-        <button class="main-btn" onclick="startGame()">دخول</button>
-        <button id="adminClearBtn" class="danger-btn" onclick="clearAllData()">مسح جميع البيانات</button>
-    </div>
-</div>
-
-<div class="main-layout" id="mainLayout">
-    <div class="leaderboard">
-        <h3 style="text-align:center;margin-top:0;">🏆 المتصدرون</h3>
-        <div id="scoresList"></div>
+    <div id="startScreen">
+        <div class="login-card">
+            <h1 id="gameTitle" style="cursor: pointer; user-select: none;">🎡 عجلة تقنية المعلومات</h1>
+            <input type="text" id="pName" placeholder="اسم الطالب">
+            <input type="text" id="pClass" placeholder="الصف مثلا : 5\1">
+            <button class="main-btn" onclick="startGame()">دخول</button>
+            <button id="adminClearBtn" class="danger-btn" onclick="clearAllData()">مسح جميع البيانات 🗑️</button>
+        </div>
     </div>
 
-    <div class="game-container">
-        <div class="stats-bar">
-            <span>👤 <span id="statName">--</span></span>
-            <span>🏅 النقاط: <b id="statScore">0</b></span>
-            <button onclick="location.reload()" style="background:var(--danger);border:none;color:white;padding:2px 10px;border-radius:8px;">خروج</button>
+    <div class="main-layout" id="mainLayout">
+        <div class="game-container">
+            <div class="stats-bar">
+                <span>👤 <span id="statName">--</span></span>
+                <span>🏅 النقاط: <b id="statScore">0</b></span>
+                <button onclick="location.reload()" style="background:var(--danger); border:none; color:white; padding:4px 12px; border-radius:8px; cursor:pointer; font-family:'Cairo';">خروج</button>
+            </div>
+            
+            <div class="wheel-box">
+                <img src="https://cdn-icons-png.flaticon.com/512/2722/2722987.png" class="pointer">
+                <canvas id="canvas" width="500" height="500"></canvas>
+            </div>
+            <button class="main-btn" id="spinBtn" style="max-width:220px;" onclick="spinWheel()">🎡 دَوّر العجلة</button>
         </div>
 
-        <div class="wheel-box">
-            <img src="https://cdn-icons-png.flaticon.com/512/2722/2722987.png" class="pointer">
-            <canvas id="canvas" width="500" height="500"></canvas>
+        <div class="leaderboard">
+            <h3 style="text-align:center; margin-top:0;">🏆 المتصدرون</h3>
+            <div id="scoresList"></div>
         </div>
-
-        <button class="main-btn" id="spinBtn" style="max-width:200px;" onclick="spinWheel()">🎡 دوّر العجلة</button>
     </div>
-</div>
 
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-        <div id="timerContainer">⏱ الوقت المتبقي: <b id="secondsText">10</b></div>
-        <h2 id="qText">السؤال؟</h2>
-        <div id="optionsGrid"></div>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div id="timerContainer" style="margin-bottom:15px;">⏱ الوقت المتبقي: <b id="secondsText">10</b></div>
+            <h2 id="qText" style="margin-bottom:20px;">السؤال؟</h2>
+            <div id="optionsGrid"></div>
+        </div>
     </div>
-</div>
 
 <script>
-/* ---- نفس كودك بدون تغيير ---- */
+    let pressTimer;
+    const gameTitle = document.getElementById('gameTitle');
+    const adminBtn = document.getElementById('adminClearBtn');
+    
+    const startPress = () => { pressTimer = setTimeout(() => { adminBtn.style.display = 'block'; alert("تم تفعيل وضع المعلم"); }, 3000); };
+    const cancelPress = () => { clearTimeout(pressTimer); };
+    
+    gameTitle.addEventListener('mousedown', startPress);
+    gameTitle.addEventListener('touchstart', startPress);
+    gameTitle.addEventListener('mouseup', cancelPress);
+    gameTitle.addEventListener('touchend', cancelPress);
 
-let score=0,currentRotation=0,isSpinning=false,timerInterval,timeLeft=10;
-
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-const colors=['#FF5E5E','#FFB84E','#4E9FFF','#4EFC9F','#B34EFC','#FC4EED','#FCEE4E','#4EFCF0'];
-
-function drawWheel(){
-    const segments=8,angle=2*Math.PI/segments;
-    for(let i=0;i<segments;i++){
-        ctx.beginPath();
-        ctx.fillStyle=colors[i];
-        ctx.moveTo(250,250);
-        ctx.arc(250,250,250,i*angle,(i+1)*angle);
-        ctx.fill();
-        ctx.save();
-        ctx.translate(250,250);
-        ctx.rotate(i*angle+angle/2);
-        ctx.fillStyle="white";
-        ctx.font="bold 35px Cairo";
-        ctx.fillText(i+1,150,10);
-        ctx.restore();
+    function clearAllData() {
+        if(confirm("مسح جميع النتائج؟")) {
+            localStorage.removeItem('ranking');
+            updateLeaderboard();
+            adminBtn.style.display = 'none';
+        }
     }
-}
 
-function startGame(){
-    const n=pName.value,c=pClass.value;
-    if(!n||!c) return alert("سجل اسمك وفصلك");
+    const originalQuestions = [
+        {q: "ما هو اختصار وحدة المعالجة المركزية؟", o: ["RAM", "CPU", "USB"], a: 1},
+        {q: "تعتبر الشاشة من وحدات الـ ...؟", o: ["إخراج", "إدخال", "معالجة"], a: 0},
+        {q: "أي مما يلي يعتبر نظام تشغيل؟", o: ["Word", "Windows", "Youtube"], a: 1},
+        {q: "لحفظ الملف نضغط على الاختصار؟", o: ["Ctrl+S", "Ctrl+P", "Ctrl+C"], a: 0},
+        {q: "الفأرة تعتبر من وحدات؟", o: ["الإخراج", "إدخال", "التخزين"], a: 1},
+        {q: "ما هي لغة العصر؟", o: ["البرمجة", "الإنجليزية", "الرياضيات"], a: 0}
+    ];
 
-    bgMusic.volume=0.2;
-    bgMusic.play().catch(()=>{});
+    let availableQuestions = [...originalQuestions];
+    let score = 0;
+    let currentRotation = 0;
+    let isSpinning = false;
+    let timerInterval;
+    let timeLeft = 10;
 
-    statName.innerText=n+" ("+c+")";
-    startScreen.style.display="none";
-    mainLayout.style.display="flex";
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const colors = ['#FF5E5E', '#FFB84E', '#4E9FFF', '#4EFC9F', '#B34EFC', '#FC4EED', '#FCEE4E', '#4EFCF0'];
 
-    /* ✅ تعديل فقط */
-    window.scrollTo({top:0,behavior:"instant"});
+    function drawWheel() {
+        const segments = 8;
+        const angle = 2 * Math.PI / segments;
+        for(let i=0; i<segments; i++) {
+            ctx.beginPath(); ctx.fillStyle = colors[i]; ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 250, i * angle, (i + 1) * angle); ctx.fill();
+            ctx.save(); ctx.translate(250, 250); ctx.rotate(i * angle + angle/2);
+            ctx.fillStyle = "white"; ctx.font = "bold 35px Cairo";
+            ctx.fillText(i + 1, 150, 10); ctx.restore();
+        }
+    }
 
-    drawWheel();
-    updateLeaderboard();
-}
+    function startGame() {
+        const n = document.getElementById('pName').value;
+        const c = document.getElementById('pClass').value;
+        if(!n || !c) return alert("سجل اسمك وفصلك");
+        
+        document.getElementById('bgMusic').volume = 0.2;
+        document.getElementById('bgMusic').play().catch(()=>{});
+        
+        document.getElementById('statName').innerText = n + " (" + c + ")";
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('mainLayout').style.display = 'flex';
+        
+        drawWheel();
+        updateLeaderboard();
+        window.scrollTo(0,0); // التأكد من العودة للأعلى عند البدء
+    }
 
- function spinWheel() {
+    function spinWheel() {
         if(isSpinning) return;
-        if(availableQuestions.length === 0) return alert("لقد أجبت على جميع الأسئلة المتوفرة! بطل!");
+        if(availableQuestions.length === 0) return alert("لقد أجبت على جميع الأسئلة المتوفرة!");
 
         isSpinning = true;
         document.getElementById('spinSound').play();
@@ -278,7 +203,6 @@ function startGame(){
     }
 
     function showQuestion() {
-        // اختيار سؤال عشوائي من المتاح
         const qIndex = Math.floor(Math.random() * availableQuestions.length);
         const q = availableQuestions[qIndex];
         
@@ -296,8 +220,6 @@ function startGame(){
             if(timeLeft <= 0) {
                 clearInterval(timerInterval);
                 document.getElementById('wrongSound').play();
-                alert("انتهى الوقت!");
-                // نحذف السؤال حتى لو لم يجب لعدم التكرار
                 availableQuestions.splice(qIndex, 1);
                 document.getElementById('modalOverlay').style.display = 'none';
             }
@@ -313,33 +235,26 @@ function startGame(){
             b.onclick = () => {
                 clearInterval(timerInterval);
                 const allButtons = grid.querySelectorAll('button');
-                allButtons.forEach(btn => btn.disabled = true); // منع الضغط المتكرر
+                allButtons.forEach(btn => btn.disabled = true);
 
                 if(i === q.a) {
-                    // إجابة صحيحة
                     b.classList.add('correct-ans');
                     score += (timeLeft * 5) + 50;
                     document.getElementById('statScore').innerText = score;
                     confetti();
                     document.getElementById('correctSound').play();
                 } else {
-                    // إجابة خاطئة
                     b.classList.add('wrong-ans');
-                    // إظهار الإجابة الصحيحة أيضاً
                     allButtons[q.a].classList.add('correct-ans');
                     document.getElementById('wrongSound').play();
                 }
 
-                // حذف السؤال من القائمة المتاحة لضمان عدم التكرار
                 availableQuestions.splice(qIndex, 1);
                 saveScore();
                 
                 setTimeout(() => { 
                     document.getElementById('modalOverlay').style.display = 'none';
-                    if(availableQuestions.length === 0) {
-                        alert("🎉 أحسنت! لقد أنهيت جميع الأسئلة. رصيدك النهائي: " + score);
-                    }
-                }, 2000); // مهلة ثانيتين لمشاهدة النتيجة
+                }, 2000);
             };
             grid.appendChild(b);
         });
@@ -359,7 +274,7 @@ function startGame(){
         const players = JSON.parse(localStorage.getItem('ranking') || '[]');
         players.sort((a,b) => b.score - a.score);
         document.getElementById('scoresList').innerHTML = players.slice(0, 10).map(p => 
-            `<div style="display:flex; justify-content:space-between; padding:8px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:8px; border-right:4px solid var(--primary);">
+            `<div style="display:flex; justify-content:space-between; padding:8px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:8px; border-right:4px solid var(--primary); font-size:0.85rem;">
                 <span>${p.name}</span><b>${p.score}</b>
             </div>`
         ).join('');
@@ -368,10 +283,6 @@ function startGame(){
 </body>
 </html>
 
-</script>
-
-</body>
-</html>
 
 
 
