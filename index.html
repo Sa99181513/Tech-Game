@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام عجلة تقنية المعلومات</title>
+    <title>عجلة تقنية المعلومات - النسخة الشاملة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
@@ -11,28 +11,32 @@
         * { box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--dark); color: white; height: 100vh; width: 100vw; overflow-x: hidden; }
 
-        /* الشاشات */
+        /* الشاشات الأساسية */
         #startScreen, #adminScreen, #mainLayout { position: fixed; inset: 0; width: 100%; height: 100%; background: var(--dark); z-index: 1000; overflow-y: auto; }
         #startScreen { display: flex; justify-content: center; align-items: center; padding: 20px; }
         #adminScreen { display: none; padding: 20px; }
         #mainLayout { display: none; flex-direction: column; align-items: center; padding: 10px; }
 
-        .card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid var(--primary); width: 100%; max-width: 700px; margin: auto; }
+        .card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid var(--primary); width: 100%; max-width: 600px; margin: auto; }
 
-        /* إحصائيات المعلم */
+        /* شريط إحصائيات المعلم */
         .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .stat-item { background: rgba(0, 210, 255, 0.1); padding: 10px; border-radius: 15px; border: 1px solid var(--primary); text-align: center; }
+        .stat-item { background: rgba(0, 210, 255, 0.1); padding: 10px; border-radius: 12px; border: 1px solid var(--primary); }
         .stat-item span { font-size: 0.7rem; color: #ccc; display: block; }
-        .stat-item b { font-size: 1.1rem; color: var(--primary); }
+        .stat-item b { font-size: 1rem; color: var(--primary); }
 
         /* مناطق التمرير Scroll */
-        .scroll-area { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px; text-align: right; }
+        .scroll-area { max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px; text-align: right; width: 100%; }
 
         /* واجهة الطالب */
         .game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 500px; background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 50px; margin-bottom: 10px; }
         .wheel-box { position: relative; width: 260px; height: 260px; margin: 10px auto; flex-shrink: 0; }
         #canvas { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #334155; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 100; width: 35px; }
+
+        /* المتصدرون */
+        .leaderboard { width: 100%; max-width: 500px; background: rgba(255,255,255,0.05); border-radius: 15px; padding: 10px; margin-top: 15px; }
+        .rank-item { display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 8px; border-right: 4px solid var(--primary); font-size: 0.85rem; }
 
         /* الأزرار والمدخلات */
         .btn { padding: 10px 15px; border-radius: 12px; border: none; font-family: 'Cairo'; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
@@ -44,7 +48,7 @@
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-family: 'Cairo'; }
 
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; font-size: 0.9rem; }
+        th, td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: none; justify-content: center; align-items: center; z-index: 5000; padding: 20px; }
         .modal { background: #1e293b; width: 100%; max-width: 400px; padding: 20px; border-radius: 20px; border: 2px solid var(--primary); text-align: center; }
@@ -58,17 +62,18 @@
 
     <div id="startScreen">
         <div class="card" style="max-width: 350px;">
-            <h1 onclick="openAdmin()" style="cursor: pointer; font-size: 1.5rem; user-select: none;">🎡 مسابقة التقنية</h1>
+            <h1 id="adminTrigger" onclick="openAdmin()" style="cursor: pointer; font-size: 1.5rem; user-select: none;">🎡 مسابقة التقنية</h1>
             <input type="text" id="pName" placeholder="اسم الطالب">
-            <input type="text" id="pClass" placeholder="الصف">
+            <input type="text" id="pClass" placeholder="الصف (مثلاً 5/أ)">
             <button class="btn btn-primary btn-block" onclick="launchGame()">دخول اللعبة</button>
+            <p style="font-size: 0.75rem; color: #666; margin-top: 15px;">المعلم؟ اضغط على العنوان أعلاه 👆</p>
         </div>
     </div>
 
     <div id="adminScreen">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin:0; font-size: 1.2rem;">🛠️ لوحة المعلم</h2>
+                <h2 style="margin:0; font-size: 1.2rem;">🛠️ لوحة تحكم المعلم</h2>
                 <button class="btn btn-danger" onclick="location.reload()">خروج</button>
             </div>
 
@@ -78,26 +83,26 @@
                 <div class="stat-item"><span>الأسئلة</span><b id="statCount">0</b></div>
             </div>
 
-            <div class="scroll-area" style="padding:15px; max-height: none;">
-                <h3 style="margin-top:0">➕ إضافة سؤال جديد</h3>
-                <input type="text" id="newQ" placeholder="السؤال">
+            <div style="text-align: right; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px;">
+                <h3 style="margin:0 0 10px 0">📝 إضافة سؤال</h3>
+                <input type="text" id="newQ" placeholder="اكتب السؤال هنا">
                 <input type="text" id="ansCorrect" placeholder="الإجابة الصحيحة">
-                <input type="text" id="ansW1" placeholder="خيار خطأ 1">
-                <input type="text" id="ansW2" placeholder="خيار خطأ 2">
-                <button class="btn btn-success btn-block" onclick="saveNewQ()">حفظ في العجلة</button>
+                <input type="text" id="ansW1" placeholder="خيار خاطئ 1">
+                <input type="text" id="ansW2" placeholder="خيار خاطئ 2">
+                <button class="btn btn-success btn-block" onclick="saveNewQ()">حفظ السؤال في العجلة +</button>
             </div>
 
             <div style="margin-top:20px; text-align:right;">
-                <h3>📑 الأسئلة الحالية (اسحب للتمرير)</h3>
+                <h3>📑 قائمة الأسئلة (اسحب للتمرير)</h3>
                 <div class="scroll-area" id="qsTableContainer"></div>
             </div>
 
             <div style="margin-top:20px; text-align:right;">
-                <h3>📊 النتائج والأدوات</h3>
+                <h3>📊 إدارة النتائج</h3>
                 <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <button class="btn btn-warning" style="flex:1" onclick="copyResults()">نسخ 📋</button>
-                    <button class="btn btn-primary" style="flex:1" onclick="exportCSV()">Excel 📥</button>
-                    <button class="btn btn-danger" style="flex:1" onclick="clearAllScores()">تصفير 🗑️</button>
+                    <button class="btn btn-warning" style="flex:1" onclick="copyResults()">نسخ</button>
+                    <button class="btn btn-primary" style="flex:1" onclick="exportCSV()">Excel</button>
+                    <button class="btn btn-danger" style="flex:1" onclick="clearAllScores()">تصفير</button>
                 </div>
                 <div class="scroll-area">
                     <table>
@@ -115,29 +120,34 @@
             <span>🏅 <b id="statScore">0</b></span>
             <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.7rem;" onclick="location.reload()">خروج 🚪</button>
         </div>
+
         <div class="wheel-box">
             <img src="https://cdn-icons-png.flaticon.com/512/2722/2722987.png" class="pointer">
             <canvas id="canvas" width="500" height="500"></canvas>
         </div>
-        <button class="btn btn-primary btn-block" style="max-width: 300px; height: 50px;" id="spinBtn" onclick="startSpin()">🎡 دَوّر العجلة</button>
-        <div id="leaderboardList" style="width:100%; max-width:500px; margin-top:10px;"></div>
+
+        <button class="btn btn-primary btn-block" style="max-width: 300px; height: 50px; font-size: 1.2rem;" id="spinBtn" onclick="startSpin()">🎡 دَوّر العجلة</button>
+
+        <div class="leaderboard">
+            <h4 style="margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid var(--primary); padding-bottom: 5px;">🏆 قائمة المتصدرين</h4>
+            <div id="leaderboardList"></div>
+        </div>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <div style="color: var(--warning); margin-bottom: 10px; font-weight: bold;">⏱ المتبقي: <span id="timerVal">10</span></div>
-            <h3 id="modalQ"></h3>
+            <div style="color: var(--warning); margin-bottom: 10px; font-weight: bold;">⏱ الوقت المتبقي: <span id="timerVal">10</span> ثوانٍ</div>
+            <h3 id="modalQ" style="margin-bottom: 20px;"></h3>
             <div id="modalOpts"></div>
         </div>
     </div>
 
 <script>
     const ADMIN_PASS = "123";
-    // الأسئلة الافتراضية لضمان عدم ظهور العجلة فارغة
     const defaultData = [
-        {q: "ما هو عقل الحاسوب؟", o: ["المعالج CPU", "الشاشة", "الفأرة"], a: 0},
-        {q: "وحدة قياس سعة التخزين هي؟", o: ["بايت Byte", "متر", "كيلو"], a: 0},
-        {q: "من وحدات الإدخال؟", o: ["لوحة المفاتيح", "السماعات", "الطابعة"], a: 0}
+        {q: "ما هو اختصار وحدة المعالجة المركزية؟", o: ["CPU", "RAM", "USB"], a: 0},
+        {q: "تعتبر الشاشة من وحدات الـ...؟", o: ["إخراج", "إدخال", "معالجة"], a: 0},
+        {q: "أي مما يلي يعتبر نظام تشغيل؟", o: ["Windows", "Word", "Youtube"], a: 0}
     ];
 
     let sessionQuestions = [];
@@ -146,7 +156,6 @@
     let isSpinning = false;
     let timerRef;
 
-    // تحميل الأسئلة من الذاكرة أو استخدام الافتراضية
     function getStoredQs() {
         const saved = localStorage.getItem('customQs');
         return saved ? JSON.parse(saved) : defaultData;
@@ -169,7 +178,7 @@
         document.getElementById('statHigh').innerText = results.length ? Math.max(...results.map(r => r.score)) : 0;
 
         document.getElementById('qsTableContainer').innerHTML = `<table>` + 
-            qs.map((q, i) => `<tr><td style="text-align:right">${q.q}</td><td><button onclick="delQ(${i})" style="color:red; background:none; border:none; cursor:pointer">❌ حذف</button></td></tr>`).join('') + `</table>`;
+            qs.map((q, i) => `<tr><td style="text-align:right; font-size:0.85rem;">${q.q}</td><td><button onclick="delQ(${i})" style="color:red; background:none; border:none; cursor:pointer;">❌</button></td></tr>`).join('') + `</table>`;
 
         document.getElementById('resultsBody').innerHTML = results.sort((a,b)=>b.score - a.score).map(r => `
             <tr><td>${r.name}</td><td>${r.class}</td><td>${r.score}</td></tr>
@@ -179,7 +188,7 @@
     function saveNewQ() {
         const q = document.getElementById('newQ').value;
         const c = document.getElementById('ansCorrect').value;
-        if(!q || !c) return alert("أدخل السؤال والإجابة");
+        if(!q || !c) return alert("يرجى تعبئة السؤال والإجابة الصحيحة على الأقل");
         const qs = getStoredQs();
         qs.push({q, o: [c, document.getElementById('ansW1').value, document.getElementById('ansW2').value].filter(x => x), a: 0});
         localStorage.setItem('customQs', JSON.stringify(qs));
@@ -188,23 +197,26 @@
     }
 
     function delQ(i) {
-        if(confirm("حذف السؤال؟") && prompt("أدخل كلمة المرور للتأكيد:") === ADMIN_PASS) {
-            let qs = getStoredQs();
-            qs.splice(i, 1);
-            localStorage.setItem('customQs', JSON.stringify(qs));
-            refreshAdminUI();
+        if(confirm("هل أنت متأكد من حذف هذا السؤال؟")) {
+            if(prompt("كلمة مرور المعلم للتأكيد:") === ADMIN_PASS) {
+                let qs = getStoredQs();
+                qs.splice(i, 1);
+                localStorage.setItem('customQs', JSON.stringify(qs));
+                refreshAdminUI();
+            } else { alert("كلمة المرور خاطئة!"); }
         }
     }
 
     function launchGame() {
         const n = document.getElementById('pName').value;
         const c = document.getElementById('pClass').value;
-        if(!n || !c) return alert("سجل بياناتك أولاً");
+        if(!n || !c) return alert("يرجى كتابة اسمك وصفك للدخول");
         sessionQuestions = getStoredQs();
-        if(sessionQuestions.length === 0) return alert("لا توجد أسئلة!");
+        if(sessionQuestions.length === 0) return alert("المعلم لم يضف أي أسئلة بعد!");
         document.getElementById('statName').innerText = n;
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('mainLayout').style.display = 'flex';
+        updateLeaderboardUI();
         drawWheel();
     }
 
@@ -212,7 +224,7 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const num = sessionQuestions.length;
-        if(num === 0) { document.getElementById('spinBtn').innerText = "انتهت الأسئلة"; document.getElementById('spinBtn').disabled = true; return; }
+        if(num === 0) { document.getElementById('spinBtn').innerText = "انتهت الأسئلة! 🏁"; document.getElementById('spinBtn').disabled = true; return; }
         const angle = 2 * Math.PI / num;
         const colors = ['#FF5E5E', '#FFB84E', '#4E9FFF', '#4EFC9F', '#B34EFC', '#FC4EED'];
         ctx.clearRect(0,0,500,500);
@@ -273,14 +285,23 @@
         const i = ranking.findIndex(r => r.name === n && r.class === c);
         if(i > -1) ranking[i].score = gameScore; else ranking.push({name: n, class: c, score: gameScore});
         localStorage.setItem('ranking', JSON.stringify(ranking));
+        updateLeaderboardUI();
+    }
+
+    function updateLeaderboardUI() {
+        const ranking = JSON.parse(localStorage.getItem('ranking') || '[]');
+        document.getElementById('leaderboardList').innerHTML = ranking.sort((a,b)=>b.score - a.score).slice(0, 5).map(r => `
+            <div class="rank-item"><span>${r.name} (${r.class})</span><b>${r.score}</b></div>
+        `).join('');
     }
 
     function clearAllScores() { if(confirm("تصفير النتائج؟") && prompt("المرور:") === ADMIN_PASS) { localStorage.removeItem('ranking'); refreshAdminUI(); } }
-    function copyResults() { const res = JSON.parse(localStorage.getItem('ranking') || '[]'); let text = res.map(r => `${r.name} (${r.class}): ${r.score}`).join('\n'); navigator.clipboard.writeText(text); alert("تم النسخ"); }
-    function exportCSV() { const res = JSON.parse(localStorage.getItem('ranking') || '[]'); let csv = "\ufeffالاسم,الصف,الدرجة\n" + res.map(r => `${r.name},${r.class},${r.score}`).join('\n'); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); link.download = "results.csv"; link.click(); }
+    function copyResults() { const res = JSON.parse(localStorage.getItem('ranking') || '[]'); let text = res.map(r => `${r.name} (${r.class}): ${r.score}`).join('\n'); navigator.clipboard.writeText(text); alert("تم النسخ بنجاح"); }
+    function exportCSV() { const res = JSON.parse(localStorage.getItem('ranking') || '[]'); let csv = "\ufeffالاسم,الصف,الدرجة\n" + res.map(r => `${r.name},${r.class},${r.score}`).join('\n'); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); link.download = "نتائج_المسابقة.csv"; link.click(); }
 </script>
 </body>
 </html>
+
 
 
 
