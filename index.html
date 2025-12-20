@@ -265,12 +265,114 @@ function startGame(){
     updateLeaderboard();
 }
 
-/* بقية منطق اللعبة كما هو */
+ function spinWheel() {
+        if(isSpinning) return;
+        if(availableQuestions.length === 0) return alert("لقد أجبت على جميع الأسئلة المتوفرة! بطل!");
+
+        isSpinning = true;
+        document.getElementById('spinSound').play();
+        const extraDeg = Math.floor(Math.random() * 360) + 1800;
+        currentRotation += extraDeg;
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+        setTimeout(() => { isSpinning = false; showQuestion(); }, 4000);
+    }
+
+    function showQuestion() {
+        // اختيار سؤال عشوائي من المتاح
+        const qIndex = Math.floor(Math.random() * availableQuestions.length);
+        const q = availableQuestions[qIndex];
+        
+        document.getElementById('qText').innerText = q.q;
+        const grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+        timeLeft = 10;
+        document.getElementById('secondsText').innerText = timeLeft;
+        document.getElementById('modalOverlay').style.display = 'flex';
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('secondsText').innerText = timeLeft;
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('wrongSound').play();
+                alert("انتهى الوقت!");
+                // نحذف السؤال حتى لو لم يجب لعدم التكرار
+                availableQuestions.splice(qIndex, 1);
+                document.getElementById('modalOverlay').style.display = 'none';
+            }
+        }, 1000);
+
+        q.o.forEach((opt, i) => {
+            const b = document.createElement('button');
+            b.className = 'main-btn';
+            b.style.background = "rgba(255,255,255,0.1)";
+            b.style.color = "white";
+            b.innerText = opt;
+            
+            b.onclick = () => {
+                clearInterval(timerInterval);
+                const allButtons = grid.querySelectorAll('button');
+                allButtons.forEach(btn => btn.disabled = true); // منع الضغط المتكرر
+
+                if(i === q.a) {
+                    // إجابة صحيحة
+                    b.classList.add('correct-ans');
+                    score += (timeLeft * 5) + 50;
+                    document.getElementById('statScore').innerText = score;
+                    confetti();
+                    document.getElementById('correctSound').play();
+                } else {
+                    // إجابة خاطئة
+                    b.classList.add('wrong-ans');
+                    // إظهار الإجابة الصحيحة أيضاً
+                    allButtons[q.a].classList.add('correct-ans');
+                    document.getElementById('wrongSound').play();
+                }
+
+                // حذف السؤال من القائمة المتاحة لضمان عدم التكرار
+                availableQuestions.splice(qIndex, 1);
+                saveScore();
+                
+                setTimeout(() => { 
+                    document.getElementById('modalOverlay').style.display = 'none';
+                    if(availableQuestions.length === 0) {
+                        alert("🎉 أحسنت! لقد أنهيت جميع الأسئلة. رصيدك النهائي: " + score);
+                    }
+                }, 2000); // مهلة ثانيتين لمشاهدة النتيجة
+            };
+            grid.appendChild(b);
+        });
+    }
+
+    function saveScore() {
+        let players = JSON.parse(localStorage.getItem('ranking') || '[]');
+        const name = document.getElementById('statName').innerText;
+        const idx = players.findIndex(p => p.name === name);
+        if(idx > -1) players[idx].score = Math.max(players[idx].score, score);
+        else players.push({name, score});
+        localStorage.setItem('ranking', JSON.stringify(players));
+        updateLeaderboard();
+    }
+
+    function updateLeaderboard() {
+        const players = JSON.parse(localStorage.getItem('ranking') || '[]');
+        players.sort((a,b) => b.score - a.score);
+        document.getElementById('scoresList').innerHTML = players.slice(0, 10).map(p => 
+            `<div style="display:flex; justify-content:space-between; padding:8px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:8px; border-right:4px solid var(--primary);">
+                <span>${p.name}</span><b>${p.score}</b>
+            </div>`
+        ).join('');
+    }
+</script>
+</body>
+</html>
 
 </script>
 
 </body>
 </html>
+
 
 
 
