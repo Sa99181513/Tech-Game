@@ -11,7 +11,10 @@
         
         body { 
             margin: 0; font-family: 'Cairo', sans-serif; background: #0f172a; color: white; 
-            min-height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            min-height: 100vh; display: flex; flex-direction: column; 
+            /* تم السماح بالتمرير هنا */
+            overflow-x: hidden; 
+            overflow-y: auto; 
         }
 
         #startScreen { 
@@ -26,12 +29,12 @@
         .main-layout { 
             display: none; flex: 1; padding: 10px; gap: 15px; 
             flex-direction: row; justify-content: center; align-items: flex-start; flex-wrap: wrap;
-            overflow-y: auto; /* السماح بالتمرير الكلي فقط إذا لزم الأمر */
         }
 
         .leaderboard { 
             width: 100%; max-width: 280px; background: rgba(255, 255, 255, 0.05); 
-            border-radius: 20px; padding: 15px; max-height: 80vh; overflow-y: auto; 
+            border-radius: 20px; padding: 15px; 
+            /* جعل الارتفاع تلقائي في الهاتف ليظهر أسفل العجلة */
             border: 1px solid rgba(255,255,255,0.1); 
         }
 
@@ -66,10 +69,20 @@
         .modal { background: #1e293b; width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; text-align: center; border: 2px solid var(--primary); }
 
         @media (max-width: 768px) {
-            .main-layout { flex-direction: column; align-items: center; padding: 5px; }
-            .leaderboard { order: 2; width: 95%; max-height: 200px; margin-top: 15px; }
+            .main-layout { 
+                flex-direction: column; 
+                align-items: center; 
+                padding: 5px; 
+                overflow-y: visible; /* السماح بالتمرير الطبيعي */
+            }
+            .leaderboard { 
+                order: 2; 
+                width: 95%; 
+                max-height: none; /* إزالة تقييد الارتفاع ليظهر كل الأسماء */
+                margin: 20px 0; 
+            }
             .game-container { order: 1; width: 100%; }
-            .wheel-box { width: 70vw; height: 70vw; }
+            .wheel-box { width: 80vw; height: 80vw; }
             .stats-bar { font-size: 0.8rem; padding: 8px; }
         }
     </style>
@@ -187,7 +200,7 @@
         
         drawWheel();
         updateLeaderboard();
-        window.scrollTo(0,0); // التأكد من العودة للأعلى عند البدء
+        window.scrollTo(0,0);
     }
 
     function spinWheel() {
@@ -273,7 +286,7 @@
     function updateLeaderboard() {
         const players = JSON.parse(localStorage.getItem('ranking') || '[]');
         players.sort((a,b) => b.score - a.score);
-        document.getElementById('scoresList').innerHTML = players.slice(0, 10).map(p => 
+        document.getElementById('scoresList').innerHTML = players.map(p => 
             `<div style="display:flex; justify-content:space-between; padding:8px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:8px; border-right:4px solid var(--primary); font-size:0.85rem;">
                 <span>${p.name}</span><b>${p.score}</b>
             </div>`
@@ -282,6 +295,7 @@
 </script>
 </body>
 </html>
+
 
 
 
